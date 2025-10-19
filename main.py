@@ -1,12 +1,8 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from matplotlib.widgets import Button, Slider
-import random
 import math
-import json
-from typing import List, Tuple, Dict, Any
-import os
+import random
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 plt.rcParams['font.family'] = 'DejaVu Sans'
 
@@ -50,12 +46,6 @@ class LSystem:
                     self.rules[key.strip()] = value.strip()
                 else:
                     print(f"Предупреждение: строка '{line}' не является правилом")
-
-            print(f"Загружена L-система из {filename}:")
-            print(f"  Аксиома: {self.axiom}")
-            print(f"  Угол: {self.angle}")
-            print(f"  Начальный угол: {self.initial_angle}")
-            print(f"  Правила: {self.rules}")
 
         except Exception as e:
             print(f"Ошибка загрузки файла {filename}: {e}")
@@ -189,7 +179,6 @@ F->F+F-F-FF+F+F-F"""
             with open(filename, 'w', encoding='utf-8') as f:
                 f.write(content)
             created_files.append(filename)
-            print(f"Создан файл: {filename}")
         except Exception as e:
             print(f"Ошибка создания файла {filename}: {e}")
 
@@ -254,14 +243,8 @@ def task1_l_systems():
     plt.tight_layout()
     plt.show()
 
-    # Демонстрация работы с деревом (задание 1.б)
-    print("\n" + "=" * 60)
-    print("ЗАДАНИЕ 1.б: Фрактальное дерево с улучшениями")
-    print("=" * 60)
-
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
 
-    # Дерево из файла
     try:
         tree_system = LSystem()
         tree_system.load_from_file('tree_advanced.txt')
@@ -294,7 +277,6 @@ def task1_l_systems():
 
     plt.tight_layout()
     plt.show()
-
 
 # =============================================================================
 # ЗАДАНИЕ 2: ALGORITHM MIDPOINT DISPLACEMENT
@@ -637,34 +619,4 @@ def interactive_demo():
 # =============================================================================
 
 if __name__ == "__main__":
-    # Создаем демонстрационные файлы L-систем
-    demo_files = {
-        'koch.txt': """F 60 0
-F->F+F--F+F""",
-
-        'tree.txt': """A 25 90
-A->F[+A][-A]
-F->FF""",
-
-        'dragon.txt': """FX 90 0
-X->X+YF+
-Y->-FX-Y"""
-    }
-
-    # Сохраняем демо файлы
-    for filename, content in demo_files.items():
-        try:
-            with open(filename, 'w', encoding='utf-8') as f:
-                f.write(content)
-        except:
-            pass
-
-    print("ДЕМОНСТРАЦИОННАЯ ПРОГРАММА ПО КОМПЬЮТЕРНОЙ ГРАФИКЕ")
-    print("Реализованы все три задания:")
-    print("1. L-системы для фрактальных узоров")
-    print("2. Алгоритм Midpoint Displacement для горных массивов")
-    print("3. Кубические сплайны Безье для гладких кривых")
-    print("\n" + "=" * 60)
-
-    # Запускаем интерактивную демонстрацию
     interactive_demo()
