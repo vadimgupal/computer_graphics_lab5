@@ -1,14 +1,18 @@
-import math
-import random
-
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from matplotlib.widgets import Button, Slider
+import random
+import math
+import json
+from typing import List, Tuple, Dict, Any
+import os
 
 plt.rcParams['font.family'] = 'DejaVu Sans'
 
 
 # =============================================================================
-# ЗАДАНИЕ 1: L-СИСТЕМЫ
+# ЗАДАНИЕ 1: L-СИСТЕМЫ (ИСПРАВЛЕННАЯ ВЕРСИЯ)
 # =============================================================================
 
 class LSystem:
@@ -21,26 +25,41 @@ class LSystem:
         self.randomness = 0.0
 
     def load_from_file(self, filename: str):
-        """Загрузка L-системы из файла"""
+        """Загрузка L-системы из файла согласно формату задания"""
         try:
             with open(filename, 'r', encoding='utf-8') as f:
                 lines = [line.strip() for line in f if line.strip() and not line.startswith('#')]
 
-            # Первая строка: аксиома, угол, начальное направление
+            if not lines:
+                raise ValueError("Файл пустой")
+
+            # Первая строка: <атом> <угол поворота> <начальное направление>
             first_line = lines[0].split()
+            if len(first_line) < 2:
+                raise ValueError("Неверный формат первой строки")
+
             self.axiom = first_line[0]
             self.angle = float(first_line[1])
             self.initial_angle = float(first_line[2]) if len(first_line) > 2 else 0
 
-            # Правила
+            # Остальные строки: правила
             self.rules = {}
             for line in lines[1:]:
                 if '->' in line:
-                    key, value = line.split('->')
+                    key, value = line.split('->', 1)  # Разделяем только по первому '->'
                     self.rules[key.strip()] = value.strip()
+                else:
+                    print(f"Предупреждение: строка '{line}' не является правилом")
+
+            print(f"Загружена L-система из {filename}:")
+            print(f"  Аксиома: {self.axiom}")
+            print(f"  Угол: {self.angle}")
+            print(f"  Начальный угол: {self.initial_angle}")
+            print(f"  Правила: {self.rules}")
 
         except Exception as e:
-            print(f"Ошибка загрузки файла: {e}")
+            print(f"Ошибка загрузки файла {filename}: {e}")
+            raise
 
     def generate_string(self, iterations: int) -> str:
         """Генерация строки L-системы"""
@@ -129,58 +148,150 @@ class LSystem:
         ax.set_aspect('equal')
 
 
-def task1_l_systems():
-    """Задание 1: L-системы"""
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 7))
-    fig.suptitle('ЗАДАНИЕ 1: L-СИСТЕМЫ', fontsize=16, fontweight='bold')
+def create_lsystem_files():
+    """Создание тестовых файлов L-систем согласно заданию"""
+    files_content = {
+        # 1. Кривая Коха
+        'koch.txt': """F 60 0
+F->F+F--F+F""",
 
-    # 1.а Различные фракталы из лекций
-    ax1.set_title('1.а Различные фракталы')
-    ax1.set_xlabel('Кривая Коха, Ковер Серпинского, Дракон')
+        # 2. Ковер Серпинского
+        'sierpinski.txt': """F 120 0
+F->F-G+F+G-F
+G->GG""",
 
-    # Кривая Коха
-    koch = LSystem()
-    koch.axiom = "F"
-    koch.rules = {"F": "F+F--F+F"}
-    koch.angle = 60
-    koch.distance = 2
-    koch.draw(4, ax1, 'blue', 1)
+        # 3. Кривая дракона
+        'dragon.txt': """FX 90 0
+X->X+YF+
+Y->-FX-Y""",
 
-    # Ковер Серпинского
-    sierpinski = LSystem()
-    sierpinski.axiom = "F-G-G"
-    sierpinski.rules = {"F": "F-G+F+G-F", "G": "GG"}
-    sierpinski.angle = 120
-    sierpinski.distance = 3
-    sierpinski.draw(5, ax1, 'red', 1)
+        # 4. Фрактальное дерево (простое)
+        'tree_simple.txt': """F 25 90
+F->FF+[+F-F-F]-[-F+F+F]""",
 
-    # Кривая дракона
-    dragon = LSystem()
-    dragon.axiom = "FX"
-    dragon.rules = {"X": "X+YF+", "Y": "-FX-Y"}
-    dragon.angle = 90
-    dragon.distance = 2
-    dragon.draw(10, ax1, 'green', 1)
+        # 5. Фрактальное дерево (сложное, с ветвлением)
+        'tree_advanced.txt': """A 22 90
+A->F[+A][-A]
+F->FF""",
 
-    # 1.б Фрактальное дерево
-    ax2.set_title('1.б Фрактальное дерево с ветвлением')
+        # 6. Куст
+        'bush.txt': """F 22 90
+F->FF-[-F+F+F]+[+F-F-F]""",
 
-    tree = LSystem()
-    tree.axiom = "A"
-    tree.rules = {
-        "A": "F[+A][-A]",
-        "F": "FF"
+        # 7. Квадратный остров Коха
+        'koch_island.txt': """F+F+F+F 90 0
+F->F+F-F-FF+F+F-F"""
     }
-    tree.angle = 25
-    tree.initial_angle = 90
-    tree.distance = 20
-    tree.randomness = 0.3  # Случайность углов
 
-    # Рисуем дерево с изменением цвета и толщины
-    tree.draw(5, ax2, 'brown', 3)
+    created_files = []
+    for filename, content in files_content.items():
+        try:
+            with open(filename, 'w', encoding='utf-8') as f:
+                f.write(content)
+            created_files.append(filename)
+            print(f"Создан файл: {filename}")
+        except Exception as e:
+            print(f"Ошибка создания файла {filename}: {e}")
 
-    ax1.grid(True, alpha=0.3)
-    ax2.grid(True, alpha=0.3)
+    return created_files
+
+
+def task1_l_systems():
+    """Задание 1: L-системы с загрузкой из файлов"""
+    print("\n" + "=" * 60)
+    print("ЗАДАНИЕ 1: L-СИСТЕМЫ (работа с файлами)")
+    print("=" * 60)
+
+    # Создаем тестовые файлы
+    lsystem_files = create_lsystem_files()
+
+    if not lsystem_files:
+        print("Не удалось создать файлы L-систем!")
+        return
+
+    # Создаем график
+    fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+    fig.suptitle('ЗАДАНИЕ 1: L-СИСТЕМЫ - Фракталы из файлов', fontsize=16, fontweight='bold')
+    axes = axes.flatten()
+
+    # Загружаем и отрисовываем каждую L-систему из файла
+    for i, filename in enumerate(lsystem_files[:6]):  # Показываем первые 6
+        if i >= len(axes):
+            break
+
+        ax = axes[i]
+        try:
+            # Загружаем L-систему из файла
+            lsystem = LSystem()
+            lsystem.load_from_file(filename)
+            lsystem.distance = 15 - i * 2  # Настраиваем расстояние для лучшего отображения
+
+            # Для дерева добавляем особенности
+            if 'tree' in filename:
+                lsystem.randomness = 0.2
+                color = 'brown'
+                line_width = 2
+            else:
+                color = ['blue', 'red', 'green', 'purple', 'orange', 'brown'][i]
+                line_width = 1
+
+            # Отрисовываем
+            iterations = 4 if 'tree' in filename or 'bush' in filename else 5
+            lsystem.draw(iterations, ax, color, line_width)
+
+            ax.set_title(f'{filename}\n{lsystem.axiom} -> ...')
+            ax.grid(True, alpha=0.3)
+
+        except Exception as e:
+            ax.text(0.5, 0.5, f'Ошибка:\n{str(e)}',
+                    transform=ax.transAxes, ha='center', va='center')
+            ax.set_title(f'Ошибка: {filename}')
+
+    # Убираем лишние subplots
+    for i in range(len(lsystem_files), len(axes)):
+        axes[i].set_visible(False)
+
+    plt.tight_layout()
+    plt.show()
+
+    # Демонстрация работы с деревом (задание 1.б)
+    print("\n" + "=" * 60)
+    print("ЗАДАНИЕ 1.б: Фрактальное дерево с улучшениями")
+    print("=" * 60)
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+
+    # Дерево из файла
+    try:
+        tree_system = LSystem()
+        tree_system.load_from_file('tree_advanced.txt')
+        tree_system.distance = 8
+        tree_system.randomness = 0.3  # Случайность углов
+
+        ax1.set_title('Дерево из файла tree_advanced.txt')
+        tree_system.draw(5, ax1, 'brown', 3)
+        ax1.grid(True, alpha=0.3)
+
+    except Exception as e:
+        ax1.text(0.5, 0.5, f'Ошибка загрузки:\n{str(e)}',
+                 transform=ax1.transAxes, ha='center', va='center')
+
+    # Дерево с дополнительными улучшениями
+    try:
+        custom_tree = LSystem()
+        custom_tree.load_from_file('tree_advanced.txt')
+        custom_tree.distance = 6
+        custom_tree.randomness = 0.4  # Больше случайности
+        custom_tree.angle = 30  # Изменяем угол
+
+        ax2.set_title('Дерево с увеличенной случайностью')
+        custom_tree.draw(5, ax2, '#8B4513', 4)  # Темно-коричневый
+        ax2.grid(True, alpha=0.3)
+
+    except Exception as e:
+        ax2.text(0.5, 0.5, f'Ошибка:\n{str(e)}',
+                 transform=ax2.transAxes, ha='center', va='center')
+
     plt.tight_layout()
     plt.show()
 
@@ -283,6 +394,10 @@ class MidpointDisplacement:
 
 def task2_midpoint_displacement():
     """Задание 2: Алгоритм Midpoint Displacement"""
+    print("\n" + "=" * 60)
+    print("ЗАДАНИЕ 2: ALGORITHM MIDPOINT DISPLACEMENT")
+    print("=" * 60)
+
     fig = plt.figure(figsize=(15, 10))
     fig.suptitle('ЗАДАНИЕ 2: ALGORITHM MIDPOINT DISPLACEMENT', fontsize=16, fontweight='bold')
 
@@ -427,6 +542,10 @@ class BezierSpline:
 
 def task3_bezier_splines():
     """Задание 3: Кубические сплайны Безье"""
+    print("\n" + "=" * 60)
+    print("ЗАДАНИЕ 3: КУБИЧЕСКИЕ СПЛАЙНЫ БЕЗЬЕ")
+    print("=" * 60)
+
     fig, ax = plt.subplots(figsize=(12, 8))
     fig.suptitle('ЗАДАНИЕ 3: КУБИЧЕСКИЕ СПЛАЙНЫ БЕЗЬЕ', fontsize=16, fontweight='bold')
 
