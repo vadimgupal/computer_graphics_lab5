@@ -534,129 +534,6 @@ def task2_midpoint_displacement():
     app = InteractiveMidpointDisplacement()
     plt.show()
 
-# =============================================================================
-# ЗАДАНИЕ 3: КУБИЧЕСКИЕ СПЛАЙНЫ БЕЗЬЕ
-# =============================================================================
-
-class BezierSpline:
-    def __init__(self):
-        self.control_points = []
-        self.curves = []  # Список кубических кривых Безье
-
-    def add_control_point(self, x, y):
-        """Добавление контрольной точки"""
-        self.control_points.append((x, y))
-        self._update_curves()
-
-    def remove_control_point(self, index):
-        """Удаление контрольной точки"""
-        if 0 <= index < len(self.control_points):
-            self.control_points.pop(index)
-            self._update_curves()
-
-    def move_control_point(self, index, x, y):
-        """Перемещение контрольной точки"""
-        if 0 <= index < len(self.control_points):
-            self.control_points[index] = (x, y)
-            self._update_curves()
-
-    def _update_curves(self):
-        """Обновление составной кривой Безье"""
-        self.curves = []
-        n = len(self.control_points)
-
-        if n < 4:
-            return
-
-        # Создаем составную кривую Безье
-        # Каждые 4 точки определяют кубическую кривую
-        for i in range(0, n - 3, 3):
-            p0 = np.array(self.control_points[i])
-            p1 = np.array(self.control_points[i + 1])
-            p2 = np.array(self.control_points[i + 2])
-            p3 = np.array(self.control_points[i + 3])
-            self.curves.append((p0, p1, p2, p3))
-
-    def bezier_curve(self, p0, p1, p2, p3, num_points=100):
-        """Вычисление точек кубической кривой Безье"""
-        t = np.linspace(0, 1, num_points)
-        curve_x = []
-        curve_y = []
-
-        for t_val in t:
-            # Кубическая формула Безье
-            point = (1 - t_val) ** 3 * p0 + 3 * (1 - t_val) ** 2 * t_val * p1 + 3 * (
-                        1 - t_val) * t_val ** 2 * p2 + t_val ** 3 * p3
-            curve_x.append(point[0])
-            curve_y.append(point[1])
-
-        return curve_x, curve_y
-
-    def draw(self, ax):
-        """Отрисовка сплайна и контрольных точек"""
-        # Отрисовка контрольных точек
-        if self.control_points:
-            points_x, points_y = zip(*self.control_points)
-            ax.scatter(points_x, points_y, color='red', s=50, zorder=5, label='Контрольные точки')
-
-            # Соединяем контрольные точки
-            ax.plot(points_x, points_y, 'r--', alpha=0.5, linewidth=1, label='Контрольный полигон')
-
-        # Отрисовка кривых Безье
-        for i, (p0, p1, p2, p3) in enumerate(self.curves):
-            curve_x, curve_y = self.bezier_curve(p0, p1, p2, p3)
-            ax.plot(curve_x, curve_y, 'b-', linewidth=2, label='Кривая Безье' if i == 0 else "")
-
-            # Показываем касательные
-            ax.plot([p0[0], p1[0]], [p0[1], p1[1]], 'g--', alpha=0.7, linewidth=1)
-            ax.plot([p2[0], p3[0]], [p2[1], p3[1]], 'g--', alpha=0.7, linewidth=1)
-
-
-def task3_bezier_splines():
-    """Задание 3: Кубические сплайны Безье"""
-    print("\n" + "=" * 60)
-    print("ЗАДАНИЕ 3: КУБИЧЕСКИЕ СПЛАЙНЫ БЕЗЬЕ")
-    print("=" * 60)
-
-    fig, ax = plt.subplots(figsize=(12, 8))
-    fig.suptitle('ЗАДАНИЕ 3: КУБИЧЕСКИЕ СПЛАЙНЫ БЕЗЬЕ', fontsize=16, fontweight='bold')
-
-    spline = BezierSpline()
-
-    # Добавляем начальные точки для демонстрации
-    demo_points = [
-        (1, 1), (2, 3), (4, 2), (5, 4),
-        (6, 1), (8, 3), (9, 1), (11, 2)
-    ]
-
-    for point in demo_points:
-        spline.add_control_point(*point)
-
-    spline.draw(ax)
-
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.grid(True, alpha=0.3)
-    ax.legend()
-    ax.set_title('Составная кубическая кривая Безье\n(Каждые 4 точки определяют сегмент кривой)')
-    ax.set_aspect('equal')
-
-    # Добавляем поясняющий текст
-    text_info = """
-    Составная кубическая кривая Безье:
-    • Красные точки - контрольные точки
-    • Красный пунктир - контрольный полигон  
-    • Синие линии - кривые Безье
-    • Зеленый пунктир - касательные векторы
-
-    Структура: P0, P1, P2, P3, P4, P5, P6, P7...
-    Кривые: [P0-P3], [P3-P6], ...
-    """
-    ax.text(0.02, 0.98, text_info, transform=ax.transAxes, verticalalignment='top',
-            bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8), fontsize=10)
-
-    plt.tight_layout()
-    plt.show()
 
 
 # =============================================================================
@@ -671,13 +548,12 @@ def interactive_demo():
     print("\nВыберите задание для демонстрации:")
     print("1. L-системы (фрактальные узоры)")
     print("2. Midpoint Displacement (горные массивы)")
-    print("3. Кубические сплайны Безье")
-    print("4. Все задания вместе")
+    print("3. Все задания вместе")
     print("0. Выход")
 
     while True:
         try:
-            choice = input("\nВаш выбор (0-4): ").strip()
+            choice = input("\nВаш выбор (0-3): ").strip()
             if choice == '0':
                 print("Выход из программы.")
                 break
@@ -688,13 +564,9 @@ def interactive_demo():
                 print("\nЗапуск задания 2: Midpoint Displacement...")
                 task2_midpoint_displacement()
             elif choice == '3':
-                print("\nЗапуск задания 3: Кубические сплайны Безье...")
-                task3_bezier_splines()
-            elif choice == '4':
                 print("\nЗапуск всех заданий...")
                 task1_l_systems()
                 task2_midpoint_displacement()
-                task3_bezier_splines()
             else:
                 print("Неверный выбор. Попробуйте снова.")
         except KeyboardInterrupt:
