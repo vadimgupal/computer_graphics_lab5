@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>LAB5.3</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background: #f7f7f7;
+        margin: 16px;
+      }
+      .main {
+        display: flex;
+        flex-direction: row;
+      }
+      .controls {
+        margin-bottom: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 10px;
+        flex-wrap: wrap;
+        min-width: 200px;
+        padding: 15px;
+      }
+      canvas {
+        border: 1px solid #aaa;
+        border-radius: 5px;
+        background: #fff;
+        cursor: crosshair;
+        box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.4);
+      }
+
+      .radio-button,
+      .control-checkbox,
+      .control-button {
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .radio-button label,
+      .control-checkbox,
+      .control-button button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 44px;
+        padding: 10px 15px;
+        box-sizing: border-box;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        background-color: #f8f9fa;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        color: #333;
+        text-align: center;
+        user-select: none;
+        margin: 0;
+      }
+
+      .radio-button input[type="radio"] {
+        display: none;
+      }
+
+      .radio-button label:hover,
+      .control-checkbox:hover,
+      .control-button button:hover {
+        background-color: #e9ecef;
+        border-color: #adb5bd;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .radio-button label:active,
+      .control-checkbox:active,
+      .control-button button:active {
+        background-color: #dee2e6;
+        transform: translateY(0);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      .radio-button input[type="radio"]:checked + label {
+        background-color: #007bff;
+        color: white;
+        border-color: #0056b3;
+      }
+
+      .radio-button input[type="radio"]:checked + label:hover {
+        background-color: #0056b3;
+        border-color: #004085;
+      }
+
+      .control-checkbox {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .control-checkbox input[type="checkbox"] {
+        margin: 0;
+        transform: scale(1.2);
+      }
+
+      .control-button button {
+        background-color: #dc3545;
+        color: white;
+        border: 2px solid #dc3545;
+        font-weight: bold;
+      }
+
+      .control-button button:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+      }
+
+      .control-button button:active {
+        background-color: #bd2130;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main">
+      <div class="controls">
+        <div class="radio-button">
+          <input type="radio" name="mode" id="rbAdd" checked />
+          <label for="rbAdd">Добавить точку</label>
+        </div>
+
+        <div class="radio-button">
+          <input type="radio" name="mode" id="rbDelete" />
+          <label for="rbDelete">Удалить точку</label>
+        </div>
+
+        <div class="radio-button">
+          <input type="radio" name="mode" id="rbMove" />
+          <label for="rbMove">Переместить точку</label>
+        </div>
+
+        <div id="cbLineButton" class="control-checkbox">
+          <input type="checkbox" id="cbLines" />
+          <label for="cbLines">Опорные линии</label>
+        </div>
+
+        <div id="cbPointButton" class="control-checkbox">
+          <input type="checkbox" id="cbPoints" checked />
+          <label for="cbPoints">Опорные точки</label>
+        </div>
+
+        <div class="control-button">
+          <button id="btnClear">Очистить</button>
+        </div>
+      </div>
+
+      <canvas id="canvas" width="1250" height="800"></canvas>
+    </div>
+    <script src="lab5.js"></script>
+  </body>
+</html>
