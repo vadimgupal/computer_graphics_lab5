@@ -282,6 +282,8 @@ def task1_l_systems():
 # ЗАДАНИЕ 2: ALGORITHM MIDPOINT DISPLACEMENT
 # =============================================================================
 
+from matplotlib.widgets import TextBox, Button
+
 class MidpointDisplacement:
     def __init__(self, size=129, roughness=0.5, seed=None):
         self.size = size
@@ -291,8 +293,8 @@ class MidpointDisplacement:
             random.seed(seed)
             np.random.seed(seed)
 
-    def generate_1d(self, steps=8):
-        """Генерация 1D горного массива"""
+    def generate_2d(self, steps=8):
+        """Генерация 2D горного массива"""
         size = 2 ** steps + 1
         heights = np.zeros(size)
 
@@ -316,8 +318,8 @@ class MidpointDisplacement:
 
         return heights
 
-    def generate_2d(self, steps=7):
-        """Генерация 2D горного массива алгоритмом diamond-square"""
+    def generate_3d(self, steps=7):
+        """Генерация 3D горного массива алгоритмом diamond-square"""
         size = 2 ** steps + 1
         self.height_map = np.zeros((size, size))
 
@@ -334,8 +336,8 @@ class MidpointDisplacement:
             half_step = step_size // 2
 
             # Diamond step
-            for y in range(half_step, size, step_size):
-                for x in range(half_step, size, step_size):
+            for y in range(half_step, size - 1, step_size):
+                for x in range(half_step, size - 1, step_size):
                     avg = (self.height_map[y - half_step, x - half_step] +
                            self.height_map[y - half_step, x + half_step] +
                            self.height_map[y + half_step, x - half_step] +
@@ -374,75 +376,163 @@ class MidpointDisplacement:
         return self.height_map
 
 
+class InteractiveMidpointDisplacement:
+    def __init__(self):
+        self.fig = plt.figure(figsize=(16, 12))
+
+        # Параметры по умолчанию
+        self.params = {
+            'roughness_3d': 0.7,
+            'steps_3d': 6,
+            'roughness_2d': 0.5,
+            'steps_2d': 8,
+            'seed': 42
+        }
+
+        self.setup_ui()
+        self.update_plots()
+
+    def setup_ui(self):
+        """Создание интерфейса пользователя"""
+        self.ax_3d = self.fig.add_axes([0.05, 0.55, 0.4, 0.4], projection='3d')
+        self.ax_2d_steps = self.fig.add_axes([0.55, 0.55, 0.4, 0.4])
+        self.ax_2d_roughness = self.fig.add_axes([0.05, 0.05, 0.4, 0.4])
+        self.ax_single_line = self.fig.add_axes([0.55, 0.05, 0.4, 0.4])
+
+        self.ax_roughness_3d = plt.axes([0.1, 0.48, 0.1, 0.03])
+        self.ax_steps_3d = plt.axes([0.25, 0.48, 0.1, 0.03])
+        self.ax_roughness_2d = plt.axes([0.4, 0.48, 0.1, 0.03])
+        self.ax_steps_2d = plt.axes([0.55, 0.48, 0.1, 0.03])
+        self.ax_seed = plt.axes([0.7, 0.48, 0.1, 0.03])
+        self.ax_update = plt.axes([0.85, 0.48, 0.1, 0.03])
+
+        self.text_roughness_3d = TextBox(self.ax_roughness_3d, 'Roughness 3D:',
+                                         initial=str(self.params['roughness_3d']))
+        self.text_steps_3d = TextBox(self.ax_steps_3d, 'Steps 3D:',
+                                     initial=str(self.params['steps_3d']))
+        self.text_roughness_2d = TextBox(self.ax_roughness_2d, 'Roughness 2D:',
+                                         initial=str(self.params['roughness_2d']))
+        self.text_steps_2d = TextBox(self.ax_steps_2d, 'Steps 2D:',
+                                     initial=str(self.params['steps_2d']))
+        self.text_seed = TextBox(self.ax_seed, 'Seed:',
+                                 initial=str(self.params['seed']))
+
+        self.button_update = Button(self.ax_update, 'ОБНОВИТЬ',
+                                    color='lightblue', hovercolor='lightgreen')
+
+        self.text_roughness_3d.on_submit(self.on_roughness_3d_change)
+        self.text_steps_3d.on_submit(self.on_steps_3d_change)
+        self.text_roughness_2d.on_submit(self.on_roughness_2d_change)
+        self.text_steps_2d.on_submit(self.on_steps_2d_change)
+        self.text_seed.on_submit(self.on_seed_change)
+        self.button_update.on_clicked(self.on_update_clicked)
+
+    def on_roughness_3d_change(self, text):
+        try:
+            self.params['roughness_3d'] = float(text)
+            self.update_plots()
+        except ValueError:
+            pass
+
+    def on_steps_3d_change(self, text):
+        try:
+            self.params['steps_3d'] = int(text)
+            self.update_plots()
+        except ValueError:
+            pass
+
+    def on_roughness_2d_change(self, text):
+        try:
+            self.params['roughness_2d'] = float(text)
+            self.update_plots()
+        except ValueError:
+            pass
+
+    def on_steps_2d_change(self, text):
+        try:
+            self.params['steps_2d'] = int(text)
+            self.update_plots()
+        except ValueError:
+            pass
+
+    def on_seed_change(self, text):
+        try:
+            self.params['seed'] = int(text)
+            self.update_plots()
+        except ValueError:
+            pass
+
+    def on_update_clicked(self, event):
+        self.update_plots()
+
+    def update_plots(self):
+        """Обновление всех графиков"""
+        self.ax_3d.clear()
+        self.ax_2d_steps.clear()
+        self.ax_2d_roughness.clear()
+        self.ax_single_line.clear()
+
+        # 1. 3D ландшафт
+        self.ax_3d.set_title('3D Горный массив', fontsize=12, fontweight='bold')
+        md_3d = MidpointDisplacement(roughness=self.params['roughness_3d'], seed=self.params['seed'])
+        landscape_3d = md_3d.generate_3d(steps=self.params['steps_3d'])
+
+        x = np.linspace(0, 1, landscape_3d.shape[0])
+        y = np.linspace(0, 1, landscape_3d.shape[1])
+        X, Y = np.meshgrid(x, y)
+
+        surf = self.ax_3d.plot_surface(X, Y, landscape_3d, cmap='terrain', alpha=0.9, linewidth=0)
+        self.ax_3d.set_xlabel('X')
+        self.ax_3d.set_ylabel('Y')
+
+        # 2. 2D последовательные шаги
+        self.ax_2d_steps.set_title('2D: Последовательные шаги алгоритма', fontsize=12, fontweight='bold')
+        colors = ['red', 'blue', 'green', 'orange', 'purple', 'brown']
+        steps_list = [1, 2, 4, 8]
+
+        for steps, color in zip(steps_list[:min(5, self.params['steps_2d'])], colors):
+            md_2d = MidpointDisplacement(roughness=self.params['roughness_2d'], seed=self.params['seed'])
+            heights = md_2d.generate_2d(steps=steps)
+            x = np.linspace(0, 1, len(heights))
+            self.ax_2d_steps.plot(x, heights, color=color, label=f'{steps} шагов', linewidth=1.0, alpha=0.8)
+
+        self.ax_2d_steps.legend(fontsize=8)
+        self.ax_2d_steps.grid(True, alpha=0.3)
+
+        # 3. Различные параметры шероховатости
+        self.ax_2d_roughness.set_title('Различная шероховатость', fontsize=12, fontweight='bold')
+        roughness_values = [0.1, 0.3, 0.5, 0.7, 0.9]
+
+        for roughness, color in zip(roughness_values, colors):
+            md_2d = MidpointDisplacement(roughness=roughness, seed=self.params['seed'])
+            heights = md_2d.generate_2d(steps=self.params['steps_2d'])
+            x = np.linspace(0, 1, len(heights))
+            self.ax_2d_roughness.plot(x, heights, color=color, label=f'R={roughness}', linewidth=1.0, alpha=0.8)
+
+        self.ax_2d_roughness.legend(fontsize=8)
+        self.ax_2d_roughness.grid(True, alpha=0.3)
+
+        # 4. Одна линия Midpoint Displacement
+        self.ax_single_line.set_title('Midpoint Displacement', fontsize=12, fontweight='bold')
+        md_single = MidpointDisplacement(roughness=self.params['roughness_2d'], seed=self.params['seed'])
+        single_line = md_single.generate_2d(steps=self.params['steps_2d'])
+        x_single = np.linspace(0, 1, len(single_line))
+
+        self.ax_single_line.plot(x_single, single_line, 'b-', linewidth=1.5, alpha=0.8, label='Midpoint Displacement')
+        self.ax_single_line.grid(True, alpha=0.3)
+        self.ax_single_line.legend(fontsize=10)
+
+        plt.draw()
+
+
 def task2_midpoint_displacement():
-    """Задание 2: Алгоритм Midpoint Displacement"""
+    """Задание 2: Midpoint Displacement"""
     print("\n" + "=" * 60)
     print("ЗАДАНИЕ 2: ALGORITHM MIDPOINT DISPLACEMENT")
     print("=" * 60)
 
-    fig = plt.figure(figsize=(15, 10))
-    fig.suptitle('ЗАДАНИЕ 2: ALGORITHM MIDPOINT DISPLACEMENT', fontsize=16, fontweight='bold')
-
-    # 2D ландшафт
-    ax1 = fig.add_subplot(221, projection='3d')
-    ax1.set_title('2D: 3D Горный массив')
-
-    md_2d = MidpointDisplacement(size=65, roughness=0.7, seed=42)
-    landscape_2d = md_2d.generate_2d(steps=6)
-
-    x = np.linspace(0, 1, landscape_2d.shape[0])
-    y = np.linspace(0, 1, landscape_2d.shape[1])
-    X, Y = np.meshgrid(x, y)
-
-    surf = ax1.plot_surface(X, Y, landscape_2d, cmap='terrain', alpha=0.9)
-    ax1.set_xlabel('X')
-    ax1.set_ylabel('Y')
-    ax1.set_zlabel('Высота')
-
-    # 1D последовательные шаги
-    ax2 = fig.add_subplot(222)
-    ax2.set_title('1D: Последовательные шаги алгоритма')
-
-    colors = ['red', 'blue', 'green', 'orange', 'purple', 'brown']
-    for steps, color in zip([1, 2, 4, 6, 8], colors):
-        md_1d = MidpointDisplacement(roughness=0.5, seed=42)
-        heights = md_1d.generate_1d(steps=steps)
-        x = np.linspace(0, 1, len(heights))
-        ax2.plot(x, heights, color=color, label=f'{steps} шагов', linewidth=2)
-
-    ax2.legend()
-    ax2.grid(True, alpha=0.3)
-    ax2.set_xlabel('Позиция')
-    ax2.set_ylabel('Высота')
-
-    # Различные параметры шероховатости
-    ax3 = fig.add_subplot(223)
-    ax3.set_title('Различная шероховатость')
-
-    roughness_values = [0.1, 0.3, 0.5, 0.7, 0.9]
-    for roughness, color in zip(roughness_values, colors):
-        md_1d = MidpointDisplacement(roughness=roughness, seed=42)
-        heights = md_1d.generate_1d(steps=8)
-        x = np.linspace(0, 1, len(heights))
-        ax3.plot(x, heights, color=color, label=f'R={roughness}', linewidth=2)
-
-    ax3.legend()
-    ax3.grid(True, alpha=0.3)
-    ax3.set_xlabel('Позиция')
-    ax3.set_ylabel('Высота')
-
-    # 2D вид сверху
-    ax4 = fig.add_subplot(224)
-    ax4.set_title('2D: Вид сверху (heatmap)')
-
-    im = ax4.imshow(landscape_2d, cmap='terrain', extent=[0, 1, 0, 1])
-    plt.colorbar(im, ax=ax4, label='Высота')
-    ax4.set_xlabel('X')
-    ax4.set_ylabel('Y')
-
-    plt.tight_layout()
+    app = InteractiveMidpointDisplacement()
     plt.show()
-
 
 # =============================================================================
 # ЗАДАНИЕ 3: КУБИЧЕСКИЕ СПЛАЙНЫ БЕЗЬЕ
